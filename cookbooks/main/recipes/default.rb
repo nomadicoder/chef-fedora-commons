@@ -1,0 +1,8 @@
+package "git-core"
+package "sqlite3"
+package "libsqlite3-dev"
+package "python-software-properties"
+package "openjdk-7-jre"
+package "nodejs"
+package "imagemagick"
+package "graphicsmagick-libmagick-dev-compat"
