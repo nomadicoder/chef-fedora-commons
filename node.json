@@ -1,3 +1,8 @@
 {
-  "run_list": ["recipe[main]"]
+  "run_list": ["recipe[main]"],
+  "user": {
+    "name": "deployer",
+    "group": "admin",
+    "password": "$1$PrzLUA6N$IorBLC2Xr634emS7atMsq/"
+  }
 }
