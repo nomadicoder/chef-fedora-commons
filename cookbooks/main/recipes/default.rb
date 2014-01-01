@@ -1,3 +1,5 @@
+package "openssl"
+package "build-essential"
 package "git-core"
 package "sqlite3"
 package "libsqlite3-dev"

@@ -1,8 +1,16 @@
 {
-  "run_list": ["recipe[main]"],
   "user": {
     "name": "deployer",
     "group": "admin",
     "password": "$1$PrzLUA6N$IorBLC2Xr634emS7atMsq/"
-  }
+  },
+  "mysql": {
+    "server_root_password": "mysqlpa55",
+    "server_repl_password": "mysqlpa55",
+    "server_debian_password": "mysqlpa55"
+  },
+  "run_list": [
+    "recipe[main]",
+    "recipe[mysql::server]"
+  ]
 }
