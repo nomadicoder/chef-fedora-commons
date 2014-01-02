@@ -46,7 +46,6 @@ script "install_redis" do
   cd redis-2.8.3
   sudo make
   sudo make install
-  ls /usr/local/bin
   EOH
 
   not_if { ::File.exists?("/usr/local/bin/redis-server") }
