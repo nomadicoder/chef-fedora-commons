@@ -11,6 +11,7 @@
   },
   "run_list": [
     "recipe[main]",
-    "recipe[mysql::server]"
+    "recipe[mysql::server]",
+    "recipe[fedora-commons]"
   ]
 }
