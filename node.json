@@ -9,6 +9,12 @@
     "server_repl_password": "mysqlpa55",
     "server_debian_password": "mysqlpa55"
   },
+  "fedora-commons": {
+    "database_host": "localhost",
+    "database_name": "fedora3",
+    "database_username": "fedoraAdmin",
+    "database_password": "fedoraAdmin"
+  },
   "run_list": [
     "recipe[main]",
     "recipe[mysql::server]",

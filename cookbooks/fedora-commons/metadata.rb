@@ -8,3 +8,4 @@ version          '0.1.0'
 recipe           'fedora-commons', 'Recipe to download, install, and configure a fedora server'
 
 depends 'mysql',         '~> 4.0.14'
+depends 'database',      '~> 1.6.0'
