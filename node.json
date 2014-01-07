@@ -1,7 +1,6 @@
 {
   "user": {
     "name": "deployer",
-    "group": "admin",
     "password": "$1$PrzLUA6N$IorBLC2Xr634emS7atMsq/"
   },
   "mysql": {
@@ -10,14 +9,24 @@
     "server_debian_password": "mysqlpa55"
   },
   "fedora-commons": {
+    "version": "3.7.1",
     "database_host": "localhost",
     "database_name": "fedora3",
     "database_username": "fedoraAdmin",
-    "database_password": "fedoraAdmin"
+    "database_password": "fedoraAdmin",
+    "java_home": "/usr",
+    "fedora_home": "/usr/local/fedora",
+    "catalina_home": "/usr/local/fedora/tomcat",
+    "admin_password": "tomcat",
+    "server_host": "localhost"
+  },
+  "solr": {
+    "version": "4.6.0",
+    "home": "/srv/bl_solr",
+    "dataDir": "/var/bl_solr"
   },
   "run_list": [
     "recipe[main]",
-    "recipe[mysql::server]",
     "recipe[fedora-commons]"
   ]
 }

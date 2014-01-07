@@ -1,0 +1,28 @@
+#Install Options
+#Mon Dec 23 14:58:48 PST 2013
+ri.enabled=false
+messaging.enabled=false
+apia.auth.required=false
+database.jdbcDriverClass=org.apache.derby.jdbc.EmbeddedDriver
+upstream.auth.enabled=false
+ssl.available=false
+database.jdbcURL=jdbc\:derby\:<%=node['fedora-commons'][:fedora_home]%>/derby/fedora3;create\=true
+database.password=<%=node['fedora-commons'][:database_password]%>
+database.username=<%=node['fedora-commons'][:database_username]%>
+fesl.authz.enabled=false
+tomcat.shutdown.port=8005
+deploy.local.services=true
+xacml.enabled=false
+tomcat.http.port=8080
+fedora.serverHost=<%=node['fedora-commons'][:database_host]%>
+database=included
+database.driver=included
+fedora.serverContext=fedora
+llstore.type=akubra-fs
+tomcat.home=<%=node['fedora-commons'][:catalina_home]%>
+fesl.authn.enabled=true
+fedora.home=<%=node['fedora-commons'][:fedora_home]%>
+install.type=quick
+servlet.engine=included
+apim.ssl.required=false
+fedora.admin.pass=<%=node['fedora-commons'][:admin_password]%>

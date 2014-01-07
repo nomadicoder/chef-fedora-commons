@@ -1,4 +1,4 @@
 export RAILS_ENV=production
-export FEDORA_HOME=/usr/local/fedora
-export CATALINA_HOME=/usr/local/fedora/tomcat
+export FEDORA_HOME=<%=node['fedora-commons'][:fedora_home]%>
+export CATALINA_HOME=<%=node['fedora-commons'][:catalina_home]%>
 export JAVA_HOME=/usr
