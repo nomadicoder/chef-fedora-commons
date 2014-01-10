@@ -3,11 +3,10 @@
 ri.enabled=false
 messaging.enabled=false
 apia.auth.required=false
-database.jdbcDriverClass=org.apache.derby.jdbc.EmbeddedDriver
+database.jdbcDriverClass=com.mysql.jdbc.Driver
 upstream.auth.enabled=false
 ssl.available=false
-database.jdbcURL=jdbc\:mysql\://<%=node['fedora-commons'][:database_host]%>/fedora3?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true
-amp;autoReconnect=true
+database.jdbcURL=jdbc\:mysql\://<%=node['fedora-commons'][:database_host]%>/<%=node['fedora-commons'][:database_name]%>?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true
 database.password=<%=node['fedora-commons'][:database_password]%>
 database.username=<%=node['fedora-commons'][:database_username]%>
 fesl.authz.enabled=false
