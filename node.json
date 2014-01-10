@@ -9,21 +9,24 @@
     "server_debian_password": "mysqlpa55"
   },
   "fedora-commons": {
+    "installDir": "/opt/fedora_install",
+    "tomcat_user": "tomcat7",
+    "rails_env": "production",
     "version": "3.7.1",
     "database_host": "localhost",
     "database_name": "fedora3",
     "database_username": "fedoraAdmin",
     "database_password": "fedoraAdmin",
     "java_home": "/usr",
-    "fedora_home": "/usr/local/fedora",
-    "catalina_home": "/usr/local/fedora/tomcat",
+    "fedora_home": "/srv/fedora",
+    "catalina_home": "/var/lib/tomcat7",
     "admin_password": "tomcat",
     "server_host": "localhost"
   },
   "solr": {
     "version": "4.6.0",
     "home": "/srv/bl_solr",
-    "dataDir": "/var/bl_solr"
+    "dataDir": "/srv/bl_solr/data"
   },
   "run_list": [
     "recipe[main]",

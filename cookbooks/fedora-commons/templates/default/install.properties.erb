@@ -6,7 +6,8 @@ apia.auth.required=false
 database.jdbcDriverClass=org.apache.derby.jdbc.EmbeddedDriver
 upstream.auth.enabled=false
 ssl.available=false
-database.jdbcURL=jdbc\:derby\:<%=node['fedora-commons'][:fedora_home]%>/derby/fedora3;create\=true
+database.jdbcURL=jdbc\:mysql\://<%=node['fedora-commons'][:database_host]%>/fedora3?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true
+amp;autoReconnect=true
 database.password=<%=node['fedora-commons'][:database_password]%>
 database.username=<%=node['fedora-commons'][:database_username]%>
 fesl.authz.enabled=false
@@ -15,7 +16,7 @@ deploy.local.services=true
 xacml.enabled=false
 tomcat.http.port=8080
 fedora.serverHost=<%=node['fedora-commons'][:database_host]%>
-database=included
+database=mysql
 database.driver=included
 fedora.serverContext=fedora
 llstore.type=akubra-fs
@@ -23,6 +24,6 @@ tomcat.home=<%=node['fedora-commons'][:catalina_home]%>
 fesl.authn.enabled=true
 fedora.home=<%=node['fedora-commons'][:fedora_home]%>
 install.type=quick
-servlet.engine=included
+servlet.engine=existingTomcat
 apim.ssl.required=false
 fedora.admin.pass=<%=node['fedora-commons'][:admin_password]%>
