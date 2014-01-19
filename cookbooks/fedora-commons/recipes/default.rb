@@ -27,6 +27,10 @@ script "update_environment" do
   EOH
 end
 
+#
+# Set up MySQL Database
+#
+
 include_recipe "database::mysql"
 
 mysql_connection_info = {
@@ -68,6 +72,10 @@ mysql_database_user node['fedora-commons'][:database_username] do
   action        :grant
 end
 
+#
+# Set up fedora-commons
+#
+
 directory "#{node['fedora-commons'][:installDir]}" do
   owner  node['fedora-commons'][:tomcat_user]
   group  node['fedora-commons'][:tomcat_user]
@@ -86,7 +94,7 @@ execute "download_fedora" do
   group  node['fedora-commons'][:tomcat_user]
   command "wget http://sourceforge.net/projects/fedora-commons/files/fedora/#{node['fedora-commons'][:version]}/fcrepo-installer-#{node['fedora-commons'][:version]}.jar"
 
-  not_if { ::File.exists?("/home/#{node[:user][:name]}/fcrepo-installer-#{node['fedora-commons'][:version]}.jar") }
+  not_if { ::File.exists?("#{node['fedora-commons'][:installDir]}/fcrepo-installer-#{node['fedora-commons'][:version]}.jar") }
 end
 
 template "#{node['fedora-commons'][:installDir]}/install.properties" do
@@ -101,8 +109,26 @@ execute "install_fedora" do
   group  node['fedora-commons'][:tomcat_user]
   command "java -jar fcrepo-installer-#{node['fedora-commons'][:version]}.jar install.properties"
 
-  not_if { ::File.exists?("#{node['fedora-commons'][:fedora_home]}/server") }
+  not_if { ::File.exists?("#{node['fedora-commons'][:catalina_home]}/conf/Catalina/localhost/fedora.xml") }
 end
+
+#
+# Work around error creating fcrepoRebuildStatus table
+#
+
+execute "work_aorund_table_creation_bug" do
+  cwd    "#{node['fedora-commons'][:installDir]}"
+  user   node['fedora-commons'][:tomcat_user]
+  group  node['fedora-commons'][:tomcat_user]
+  command <<-EOH
+    mysql -u #{node['fedora-commons'][:database_username]} -p#{node['fedora-commons'][:database_password]} #{node['fedora-commons'][:database_name]} -e \
+    "CREATE TABLE IF NOT EXISTS fcrepoRebuildStatus ( rebuildDate bigint NOT NULL, complete boolean NOT NULL, UNIQUE KEY rebuildDate (rebuildDate), PRIMARY KEY rebuildDate (rebuildDate));"
+  EOH
+end
+
+#
+# Install Solr
+#
 
 execute "download_solr" do
   cwd    "#{node['fedora-commons'][:installDir]}"
@@ -122,69 +148,99 @@ execute "extract_solr" do
   not_if { ::File.exists?("#{node['fedora-commons'][:installDir]}/solr-#{node[:solr][:version]}") }
 end
 
-require 'etc'
-uid = Etc.getpwnam(node['fedora-commons'][:tomcat_user]).uid
-
-script "install_solr" do
-  interpreter "bash"
-  cwd  "#{node['fedora-commons'][:installDir]}"
-  user 'root'
-  code <<-EOH
-  cp -pr solr-#{node[:solr][:version]}/example/solr #{node[:solr][:home]}
-  chown -R #{node['fedora-commons'][:tomcat_user]}:#{node['fedora-commons'][:tomcat_user]} #{node[:solr][:home]}
-  EOH
-
-  not_if { ::File.exists?("#{node[:solr][:home]}") }
-  #not_if { ::File.stat(node[:solr][:home]).uid == uid }
+directory "#{node[:solr][:home]}" do
+  recursive true
+  owner  node['fedora-commons'][:tomcat_user]
+  group  node['fedora-commons'][:tomcat_user]
+  action :create
 end
 
-script "make_solr_app" do
-  interpreter "bash"
+directory "#{node[:solr][:home]}/lib" do
+  recursive true
+  owner  node['fedora-commons'][:tomcat_user]
+  group  node['fedora-commons'][:tomcat_user]
+  action :create
+end
+
+execute "make_solr_app" do
   cwd   "#{node['fedora-commons'][:installDir]}"
   user  node['fedora-commons'][:tomcat_user]
   group node['fedora-commons'][:tomcat_user]
-  code <<-EOH
-  cp -pr solr-#{node[:solr][:version]}/dist/solr-#{node[:solr][:version]}.war #{node[:solr][:home]}/solr.war
-  #cp -pr solr-#{node[:solr][:version]}/example/lib/ext/* #{node['fedora-commons'][:catalina_home]}/lib
-  EOH
+  command "cp -pr solr-#{node[:solr][:version]}/dist/solr-#{node[:solr][:version]}.war #{node[:solr][:home]}/solr.war"
 
-  not_if { ::File.directory?("/#{node[:solr][:home]}/#{node[:solr][:home]}/solr.war") }
+  not_if { ::File.exists?("#{node[:solr][:home]}/#{node[:solr][:home]}/solr.war") }
 end
 
-template "#{node['fedora-commons'][:catalina_home]}/lib/log4j.properties" do
-  source "log4j.properties.erb"
-  owner  node['fedora-commons'][:tomcat_user]
-  group  node['fedora-commons'][:tomcat_user]
-  owner 'tomcat7'
+execute "copy_java_archives" do
+  cwd   "#{node['fedora-commons'][:installDir]}"
+  user  node['fedora-commons'][:tomcat_user]
+  group node['fedora-commons'][:tomcat_user]
+  command "cp -pr solr-#{node[:solr][:version]}/dist/*.jar #{node[:solr][:home]}/lib"
+
+  not_if { ::File.directory?("#{node[:solr][:home]}/#{node[:solr][:home]}/lib/solr-core-4.6.0.jar") }
 end
 
-directory "#{node[:solr][:dataDir]}" do
-  owner  node['fedora-commons'][:tomcat_user]
-  group  node['fedora-commons'][:tomcat_user]
-  action :create
+execute "copy_solr_contrib" do
+  cwd   "#{node['fedora-commons'][:installDir]}"
+  user  node['fedora-commons'][:tomcat_user]
+  group node['fedora-commons'][:tomcat_user]
+  command "cp -pr solr-#{node[:solr][:version]}/contrib #{node[:solr][:home]}/lib"
+
+  not_if { ::File.directory?("#{node[:solr][:home]}/#{node[:solr][:home]}/lib/velocity") }
 end
 
-directory "#{node[:solr][:dataDir]}/data" do
-  owner  node['fedora-commons'][:tomcat_user]
-  group  node['fedora-commons'][:tomcat_user]
-  action :create
+execute "copy_sample_collection1_dir_to_production" do
+  cwd   "#{node['fedora-commons'][:installDir]}"
+  user  node['fedora-commons'][:tomcat_user]
+  group node['fedora-commons'][:tomcat_user]
+  command "cp -pr solr-#{node[:solr][:version]}/example/solr/collection1 #{node[:solr][:home]}/collection1"
+
+  not_if { ::File.directory?("#{node[:solr][:home]}/collection1") }
 end
 
-directory "#{node[:solr][:home]}/conf" do
-  owner  node['fedora-commons'][:tomcat_user]
-  group  node['fedora-commons'][:tomcat_user]
-  action :create
+execute "copy_english_stopwords_up_a_level" do
+  cwd   "#{node['fedora-commons'][:installDir]}"
+  user  node['fedora-commons'][:tomcat_user]
+  group node['fedora-commons'][:tomcat_user]
+  command "cp -pr #{node[:solr][:home]}/collection1/conf/lang/stopwords_en.txt #{node[:solr][:home]}/collection1/conf"
+
+  not_if { ::File.exists?("#{node[:solr][:home]}/collection1/conf/stopwords_en.txt") }
 end
 
-template "#{node[:solr][:home]}/conf/solrconfig.xml" do
-  source "solrconfig.xml.erb"
-  owner  node['fedora-commons'][:tomcat_user]
-  group  node['fedora-commons'][:tomcat_user]
-end
-
-template "#{node['fedora-commons'][:catalina_home]}/conf/Catalina/localhost/bl_solr.xml" do
+template "#{node[:solr][:home]}/#{node[:solr][:hydra_name]}.xml" do
   source "bl_solr.xml.erb"
   owner  node['fedora-commons'][:tomcat_user]
   group  node['fedora-commons'][:tomcat_user]
+end
+
+execute "link_tomcat_to_project_xml_file" do
+  cwd   "#{node['fedora-commons'][:installDir]}"
+  user  node['fedora-commons'][:tomcat_user]
+  group node['fedora-commons'][:tomcat_user]
+  command "ln -s #{node[:solr][:home]}/#{node[:solr][:hydra_name]}.xml /etc/tomcat7/Catalina/localhost/#{node[:solr][:hydra_name]}.xml"
+
+  not_if { ::File.symlink?("/etc/tomcat7/Catalina/localhost/#{node[:solr][:hydra_name]}.xml") }
+end
+
+execute "install_solr_log_libraries" do
+  cwd    "#{node['fedora-commons'][:installDir]}"
+  user   'root'
+  command "cp -pr solr-#{node[:solr][:version]}/example/lib/ext/* /usr/share/tomcat7/lib"
+
+  not_if { ::File.exists?("/usr/share/tomcat7/lib/slf4j-log4j12-1.6.6.jar") }
+end
+
+template "/usr/share/tomcat7/lib/log4j.properties" do
+  source "log4j.properties.erb"
+  owner  'root'
+end
+
+#
+# Restart Tomcat
+#
+
+execute "restart_tomcat" do
+  user    'root'
+  command "service tomcat7 restart"
 end
 

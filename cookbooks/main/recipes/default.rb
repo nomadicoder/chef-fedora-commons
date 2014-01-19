@@ -10,10 +10,10 @@ package "libxml2-dev"
 package "libsqlite3-dev"
 package "python-software-properties"
 package "openjdk-7-jre"
-package "libmysql-java"
 package "nodejs"
 package "imagemagick"
 package "graphicsmagick-libmagick-dev-compat"
+package "tomcat7"
 
 user node[:user][:name] do
   password node[:user][:password]
@@ -23,6 +23,12 @@ user node[:user][:name] do
 end
 
 group "sudo" do
+  action :modify
+  members node[:user][:name]
+  append true
+end
+
+group "tomcat7" do
   action :modify
   members node[:user][:name]
   append true

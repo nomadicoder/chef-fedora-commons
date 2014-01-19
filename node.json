@@ -9,7 +9,7 @@
     "server_debian_password": "mysqlpa55"
   },
   "fedora-commons": {
-    "installDir": "/opt/fedora_install",
+    "installDir": "/opt/install",
     "tomcat_user": "tomcat7",
     "rails_env": "production",
     "version": "3.7.1",
@@ -18,18 +18,20 @@
     "database_username": "fedoraAdmin",
     "database_password": "fedoraAdmin",
     "java_home": "/usr",
-    "fedora_home": "/srv/fedora",
+    "fedora_home": "/opt/fedora",
     "catalina_home": "/var/lib/tomcat7",
     "admin_password": "tomcat",
     "server_host": "localhost"
   },
   "solr": {
     "version": "4.6.0",
-    "home": "/srv/bl_solr",
-    "dataDir": "/srv/bl_solr/data"
+    "hydra_name": "hydradam",
+    "home": "/opt/solr/hydradam",
+    "dataDir": "/opt/solr/hydradam/data"
   },
   "run_list": [
     "recipe[main]",
+    "recipe[mysql::server]",
     "recipe[fedora-commons]"
   ]
 }

@@ -8,6 +8,7 @@ upstream.auth.enabled=false
 ssl.available=false
 database.jdbcURL=jdbc\:mysql\://<%=node['fedora-commons'][:database_host]%>/<%=node['fedora-commons'][:database_name]%>?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true
 database.password=<%=node['fedora-commons'][:database_password]%>
+database.mysql.driver=included
 database.username=<%=node['fedora-commons'][:database_username]%>
 fesl.authz.enabled=false
 tomcat.shutdown.port=8005
@@ -20,9 +21,10 @@ database.driver=included
 fedora.serverContext=fedora
 llstore.type=akubra-fs
 tomcat.home=<%=node['fedora-commons'][:catalina_home]%>
-fesl.authn.enabled=true
 fedora.home=<%=node['fedora-commons'][:fedora_home]%>
-install.type=quick
+database.mysql.jdbcURL=jdbc\:mysql\://<%=node['fedora-commons'][:database_host]%>/<%=node['fedora-commons'][:database_name]%>?useUnicode\=true&amp;characterEncoding\=UTF-8&amp;autoReconnect\=true
+fesl.authn.enabled=true
+install.type=custom
 servlet.engine=existingTomcat
 apim.ssl.required=false
 fedora.admin.pass=<%=node['fedora-commons'][:admin_password]%>
