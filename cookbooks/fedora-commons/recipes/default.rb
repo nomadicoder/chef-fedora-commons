@@ -125,7 +125,7 @@ end
 # Work around error creating fcrepoRebuildStatus table
 #
 
-execute "work_aorund_table_creation_bug" do
+execute "work_around_table_creation_bug" do
   cwd    "#{node['fedora-commons'][:installDir]}"
   user   node['fedora-commons'][:tomcat_user]
   group  node['fedora-commons'][:tomcat_user]
