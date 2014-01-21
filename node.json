@@ -29,9 +29,15 @@
     "home": "/opt/solr/hydradam",
     "dataDir": "/opt/solr/hydradam/data"
   },
+  "curate": {
+    "git_repo": "https://github.com/projecthydra/curate.git",
+    "git_branch": "master",
+    "installDir": "/opt/curate"
+  },
   "run_list": [
     "recipe[main]",
     "recipe[mysql::server]",
-    "recipe[fedora-commons]"
+    "recipe[fedora-commons]",
+    "recipe[curate]"
   ]
 }
