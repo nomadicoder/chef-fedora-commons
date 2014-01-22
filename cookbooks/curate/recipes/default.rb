@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: curate
+# Cookbook Name:: curate_app
 # Recipe:: default
 #
 # Copyright 2014, Steven K. Ng
@@ -50,15 +50,15 @@ end
 #
 
 git "/opt/#{node[:solr][:hydra_name]}"  do
-  repository node[:curate][:git_repo]
-  reference node[:curate][:git_branch]
+  repository node[:curate_app][:git_repo]
+  reference node[:curate_app][:git_branch]
   action :sync
   user 'root'
 end
 
 execute "change_hydra_owner" do
   user 'root'
-  command "chown -R #{node['fedora-commons'][:tomcat_user]}:#{node['fedora-commons'][:tomcat_user]} /opt/#{node[:solr][:hydra_name]}"
+  command "chown -R #{node[:curate_app][:user]}:#{node[:curate_app][:user]} /opt/#{node[:solr][:hydra_name]}"
 end
 
 execute "install_bundler" do

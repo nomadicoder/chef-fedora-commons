@@ -29,10 +29,11 @@
     "home": "/opt/solr/hydradam",
     "dataDir": "/opt/solr/hydradam/data"
   },
-  "curate": {
-    "git_repo": "https://github.com/projecthydra/curate.git",
-    "git_branch": "master",
-    "installDir": "/opt/curate"
+  "curate_app": {
+    "git_repo": "https://github.com/CHSSC/chssc-digital-archive.git",
+    "git_branch": "production-feature",
+    "installDir": "/opt/install",
+    "user": "tomcat7"
   },
   "run_list": [
     "recipe[main]",
