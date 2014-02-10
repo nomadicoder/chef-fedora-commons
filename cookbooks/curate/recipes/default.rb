@@ -18,6 +18,104 @@
 
 package "clamav"
 
+#
+# Install FFmpeg
+#
+
+package "autoconf"
+package "automake"
+
+directory "#{node['ffmpeg'][:source_dir]}" do
+  action :create
+end
+
+script "install Yasm" do
+  interpreter "bash"
+  cwd "#{node['ffmpeg'][:source_dir]}"
+  user "root"
+  code <<-EOH
+wget http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz
+tar xzvf yasm-1.2.0.tar.gz
+cd yasm-1.2.0
+./configure --prefix="#{node['ffmpeg'][:source_dir]}" --bindir="#{node['ffmpeg'][:bin_dir]}"
+make
+make install
+make distclean
+  EOH
+end
+
+script "install x264" do
+  interpreter "bash"
+  cwd "#{node['ffmpeg'][:source_dir]}"
+  user "root"
+  code <<-EOH
+git clone --depth 1 git://git.videolan.org/x264.git
+cd x264
+./configure --prefix="#{node['ffmpeg'][:source_dir]}" --bindir="#{node['ffmpeg'][:bin_dir]}" --enable-static
+make
+make install
+make distclean
+  EOH
+end
+
+script "install fdk-aac" do
+  interpreter "bash"
+  cwd "#{node['ffmpeg'][:source_dir]}"
+  user "root"
+  code <<-EOH
+git clone --depth 1 git://git.code.sf.net/p/opencore-amr/fdk-aac
+cd fdk-aac
+autoreconf -fiv
+./configure --prefix="#{node['ffmpeg'][:source_dir]}" --disable-shared
+make
+make install
+make distclean
+  EOH
+end
+
+package "libmp3lame"
+
+script "install libvpx" do
+  interpreter "bash"
+  cwd "#{node['ffmpeg'][:source_dir]}"
+  user "root"
+  code <<-EOH
+git clone --depth 1 http://git.chromium.org/webm/libvpx.git
+cd libvpx
+./configure --prefix="#{node['ffmpeg'][:source_dir]}" --disable-examples
+make
+make install
+make clean
+  EOH
+end
+
+package "libtheora-dev"
+package "libvorbis-dev"
+
+apt_repository "multiverse" do
+  uri "http://archive.ubuntu.com/ubuntu"
+  distribution "natty"
+  components ["main" "restricted" "universe" "multiverse"]
+  action :add
+  notifies :run, "execute[apt-get update]", :immediately
+end
+
+package "libfaac-dev"
+
+#
+# Clone the git 
+#
+
+#git "#{node['ffmpeg'][:source_dir]}/ffmpeg_build"  do
+#  repository 'git://source.ffmpeg.org/ffmpeg'
+#  action :sync
+#  user 'root'
+#end
+
+#
+# Install FITS
+# 
+
 script "install_fits" do
   interpreter "bash"
   cwd "/opt"
@@ -31,6 +129,10 @@ script "install_fits" do
 
   not_if { ::File.executable?("/opt/fits-0.6.2/fits.sh") }
 end
+
+#
+# Install Redis
+# 
 
 script "install_redis" do
   interpreter "bash"
