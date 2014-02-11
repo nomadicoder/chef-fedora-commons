@@ -25,88 +25,116 @@ package "clamav"
 package "autoconf"
 package "automake"
 
-directory "#{node['ffmpeg'][:source_dir]}" do
+directory "#{node[:ffmpeg][:source_dir]}" do
   action :create
+end
+
+script "download Yasm" do
+  interpreter "bash"
+  cwd "#{node[:ffmpeg][:source_dir]}"
+  user "root"
+  code <<-EOH
+    wget http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz
+    tar xzvf yasm-1.2.0.tar.gz
+  EOH
+  not_if { ::File.exists?("#{node[:ffmpeg][:source_dir]}/yasm-1.2.0") }
 end
 
 script "install Yasm" do
   interpreter "bash"
-  cwd "#{node['ffmpeg'][:source_dir]}"
+  cwd "#{node[:ffmpeg][:source_dir]}/yasm-1.2.0"
   user "root"
   code <<-EOH
-wget http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz
-tar xzvf yasm-1.2.0.tar.gz
-cd yasm-1.2.0
-./configure --prefix="#{node['ffmpeg'][:source_dir]}" --bindir="#{node['ffmpeg'][:bin_dir]}"
-make
-make install
-make distclean
+    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:build_dir]}"
+    make
+    make install
+    make distclean
   EOH
+  not_if { ::File.exists?("#{node[:ffmpeg][:build_dir]}/yasm") }
+end
+
+execute "Execution Path with Yasm" do
+  user 'root'
+  command "export PATH=#{node[:ffmpeg][:build_dir]}:$PATH"
+end
+
+git "#{node[:ffmpeg][:source_dir]}/x264"  do
+  repository 'git://git.videolan.org/x264.git'
+  action :sync
+  user 'root'
 end
 
 script "install x264" do
   interpreter "bash"
-  cwd "#{node['ffmpeg'][:source_dir]}"
+  cwd "#{node[:ffmpeg][:source_dir]}/x264"
   user "root"
   code <<-EOH
-git clone --depth 1 git://git.videolan.org/x264.git
-cd x264
-./configure --prefix="#{node['ffmpeg'][:source_dir]}" --bindir="#{node['ffmpeg'][:bin_dir]}" --enable-static
-make
-make install
-make distclean
+    export PATH=#{node[:ffmpeg][:build_dir]}:$PATH
+    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:build_dir]}" --enable-static
+    make
+    make install
+    make distclean
   EOH
+  not_if { ::File.exists?("#{node[:ffmpeg][:build_dir]}/x264") }
+end
+
+git "#{node[:ffmpeg][:source_dir]}/fdk-aac"  do
+  repository 'git://git.code.sf.net/p/opencore-amr/fdk-aac'
+  action :sync
+  user 'root'
 end
 
 script "install fdk-aac" do
   interpreter "bash"
-  cwd "#{node['ffmpeg'][:source_dir]}"
+  cwd "#{node[:ffmpeg][:source_dir]}/fdk-aac"
   user "root"
   code <<-EOH
-git clone --depth 1 git://git.code.sf.net/p/opencore-amr/fdk-aac
-cd fdk-aac
-autoreconf -fiv
-./configure --prefix="#{node['ffmpeg'][:source_dir]}" --disable-shared
-make
-make install
-make distclean
+    autoreconf -fiv
+    ./configure --prefix="#{node[:ffmpeg][:build_dir]}" --disable-shared
+    make
+    make install
+    make distclean
   EOH
+  not_if { ::File.exists?("#{node[:ffmpeg][:build_dir]}/lib/libfdk-aac.a") }
 end
 
-package "libmp3lame"
+package "libmp3lame-dev"
+
+git "#{node[:ffmpeg][:source_dir]}/libvpx"  do
+  repository 'http://git.chromium.org/webm/libvpx.git'
+  action :sync
+  user 'root'
+end
 
 script "install libvpx" do
   interpreter "bash"
-  cwd "#{node['ffmpeg'][:source_dir]}"
+  cwd "#{node[:ffmpeg][:source_dir]}/libvpx"
   user "root"
   code <<-EOH
-git clone --depth 1 http://git.chromium.org/webm/libvpx.git
-cd libvpx
-./configure --prefix="#{node['ffmpeg'][:source_dir]}" --disable-examples
-make
-make install
-make clean
+    export PATH=#{node[:ffmpeg][:build_dir]}:$PATH
+    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --disable-examples
+    make
+    make install
+    make clean
   EOH
 end
 
 package "libtheora-dev"
 package "libvorbis-dev"
 
-apt_repository "multiverse" do
-  uri "http://archive.ubuntu.com/ubuntu"
-  distribution "natty"
-  components ["main" "restricted" "universe" "multiverse"]
-  action :add
-  notifies :run, "execute[apt-get update]", :immediately
-end
+#apt_repository "multiverse" do
+#  uri 'http://archive.ubuntu.com/ubuntu'
+#  distribution 'natty'
+#  components ['main', 'restricted', 'universe', 'multiverse']
+#end
 
-package "libfaac-dev"
+#package "libfaac-dev"
 
 #
 # Clone the git 
 #
 
-#git "#{node['ffmpeg'][:source_dir]}/ffmpeg_build"  do
+#git "#{node[:ffmpeg][:source_dir]}/ffmpeg_build"  do
 #  repository 'git://source.ffmpeg.org/ffmpeg'
 #  action :sync
 #  user 'root'
