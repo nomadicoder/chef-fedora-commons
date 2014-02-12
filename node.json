@@ -37,7 +37,10 @@
   },
   "ffmpeg": {
     "source_dir": "/opt/ffmpeg_sources",
-    "build_dir": "/opt/ffmpeg_build"
+    "build_dir": "/opt/ffmpeg_build",
+    "bin_dir": "/opt/ffmpeg_build/bin",
+    "lib_dir": "/opt/ffmpeg_build/lib",
+    "include_dir": "/opt/ffmpeg_build/include"
   },
   "run_list": [
     "recipe[main]",

@@ -45,12 +45,12 @@ script "install Yasm" do
   cwd "#{node[:ffmpeg][:source_dir]}/yasm-1.2.0"
   user "root"
   code <<-EOH
-    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:build_dir]}"
+    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:bin_dir]}"
     make
     make install
     make distclean
   EOH
-  not_if { ::File.exists?("#{node[:ffmpeg][:build_dir]}/yasm") }
+  not_if { ::File.exists?("#{node[:ffmpeg][:bin_dir]}/yasm") }
 end
 
 execute "Execution Path with Yasm" do
@@ -70,12 +70,12 @@ script "install x264" do
   user "root"
   code <<-EOH
     export PATH=#{node[:ffmpeg][:build_dir]}:$PATH
-    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:build_dir]}" --enable-static
+    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:bin_dir]}" --enable-static
     make
     make install
     make distclean
   EOH
-  not_if { ::File.exists?("#{node[:ffmpeg][:build_dir]}/x264") }
+  not_if { ::File.exists?("#{node[:ffmpeg][:bin_dir]}/x264") }
 end
 
 git "#{node[:ffmpeg][:source_dir]}/fdk-aac"  do
@@ -95,7 +95,7 @@ script "install fdk-aac" do
     make install
     make distclean
   EOH
-  not_if { ::File.exists?("#{node[:ffmpeg][:build_dir]}/lib/libfdk-aac.a") }
+  not_if { ::File.exists?("#{node[:ffmpeg][:lib_dir]}/libfdk-aac.a") }
 end
 
 package "libmp3lame-dev"
@@ -112,33 +112,43 @@ script "install libvpx" do
   user "root"
   code <<-EOH
     export PATH=#{node[:ffmpeg][:build_dir]}:$PATH
-    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --disable-examples
+    ./configure --prefix="#{node[:ffmpeg][:build_dir]}" --disable-examples
     make
     make install
     make clean
   EOH
+  not_if { ::File.exists?("#{node[:ffmpeg][:lib_dir]}/libvpx.a") }
 end
 
 package "libtheora-dev"
 package "libvorbis-dev"
 
-#apt_repository "multiverse" do
-#  uri 'http://archive.ubuntu.com/ubuntu'
-#  distribution 'natty'
-#  components ['main', 'restricted', 'universe', 'multiverse']
-#end
+git "#{node[:ffmpeg][:source_dir]}/ffmpeg"  do
+  repository 'git://source.ffmpeg.org/ffmpeg'
+  action :sync
+  user 'root'
+end
 
-#package "libfaac-dev"
-
-#
-# Clone the git 
-#
-
-#git "#{node[:ffmpeg][:source_dir]}/ffmpeg_build"  do
-#  repository 'git://source.ffmpeg.org/ffmpeg'
-#  action :sync
-#  user 'root'
-#end
+script "build ffmpeg" do
+  interpreter "bash"
+  cwd "#{node[:ffmpeg][:source_dir]}/ffmpeg"
+  user "root"
+  code <<-EOH
+    export PATH=#{node[:ffmpeg][:build_dir]}:$PATH
+    PKG_CONFIG_PATH="#{node[:ffmpeg][:build_dir]}/lib/pkgconfig"
+    export PKG_CONFIG_PATH
+    ./configure --prefix="#{node[:ffmpeg][:build_dir]}" \
+      --extra-cflags="-I#{node[:ffmpeg][:bin_dir]}" --extra-ldflags="-L#{node[:ffmpeg][:lib_dir]}" \
+      --bindir="#{node[:ffmpeg][:bin_dir]}" --extra-libs="-ldl" --enable-gpl --enable-libass --enable-libfdk-aac \
+      --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libvpx \
+      --enable-libx264 --enable-nonfree --enable-x11grab
+    make
+    make install
+    make distclean
+    hash -r
+  EOH
+  not_if { ::File.exists?("#{node[:ffmpeg][:bin_dir]}/ffmpeg") }
+end
 
 #
 # Install FITS
