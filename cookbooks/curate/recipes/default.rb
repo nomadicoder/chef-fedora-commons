@@ -55,7 +55,7 @@ end
 
 execute "Execution Path with Yasm" do
   user 'root'
-  command "export PATH=#{node[:ffmpeg][:build_dir]}:$PATH"
+  command "export PATH=#{node[:ffmpeg][:bin_dir]}:$PATH"
 end
 
 git "#{node[:ffmpeg][:source_dir]}/x264"  do
@@ -69,7 +69,7 @@ script "install x264" do
   cwd "#{node[:ffmpeg][:source_dir]}/x264"
   user "root"
   code <<-EOH
-    export PATH=#{node[:ffmpeg][:build_dir]}:$PATH
+    export PATH=#{node[:ffmpeg][:bin_dir]}:$PATH
     ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:bin_dir]}" --enable-static
     make
     make install
@@ -111,7 +111,7 @@ script "install libvpx" do
   cwd "#{node[:ffmpeg][:source_dir]}/libvpx"
   user "root"
   code <<-EOH
-    export PATH=#{node[:ffmpeg][:build_dir]}:$PATH
+    export PATH=#{node[:ffmpeg][:bin_dir]}:$PATH
     ./configure --prefix="#{node[:ffmpeg][:build_dir]}" --disable-examples
     make
     make install
@@ -134,7 +134,7 @@ script "build ffmpeg" do
   cwd "#{node[:ffmpeg][:source_dir]}/ffmpeg"
   user "root"
   code <<-EOH
-    export PATH=#{node[:ffmpeg][:build_dir]}:$PATH
+    export PATH=#{node[:ffmpeg][:bin_dir]}:$PATH
     PKG_CONFIG_PATH="#{node[:ffmpeg][:build_dir]}/lib/pkgconfig"
     export PKG_CONFIG_PATH
     ./configure --prefix="#{node[:ffmpeg][:build_dir]}" \
