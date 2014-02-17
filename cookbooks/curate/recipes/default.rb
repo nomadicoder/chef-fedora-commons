@@ -24,6 +24,21 @@ package "clamav"
 
 package "autoconf"
 package "automake"
+package "build-essential"
+package "libass-dev"
+package "libgpac-dev"
+package "libsdl1.2-dev"
+package "libtheora-dev"
+package "libtool"
+package "libva-dev"
+package "libvdpau-dev"
+package "libvorbis-dev"
+package "libx11-dev"
+package "libxext-dev"
+package "libxfixes-dev"
+package "pkg-config"
+package "texi2html"
+package "zlib1g-dev"
 
 directory "#{node[:ffmpeg][:source_dir]}" do
   action :create
@@ -45,7 +60,7 @@ script "install Yasm" do
   cwd "#{node[:ffmpeg][:source_dir]}/yasm-1.2.0"
   user "root"
   code <<-EOH
-    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:bin_dir]}"
+    ./configure --prefix="#{node[:ffmpeg][:build_dir]}" --bindir="#{node[:ffmpeg][:bin_dir]}"
     make
     make install
     make distclean
@@ -53,30 +68,38 @@ script "install Yasm" do
   not_if { ::File.exists?("#{node[:ffmpeg][:bin_dir]}/yasm") }
 end
 
-execute "Execution Path with Yasm" do
-  user 'root'
-  command "export PATH=#{node[:ffmpeg][:bin_dir]}:$PATH"
-end
+#execute "download_x264" do
+#  cwd "#{node[:ffmpeg][:source_dir]}"
+#  user "root"
+#  command "wget http://download.videolan.org/pub/x264/snapshots/last_x264.tar.bz2"
+#
+#  not_if { ::File.exists?("#{node[:ffmpeg][:source_dir]}/last_x264.tar.bz2") }
+#end
 
-git "#{node[:ffmpeg][:source_dir]}/x264"  do
-  repository 'git://git.videolan.org/x264.git'
-  action :sync
-  user 'root'
-end
+#execute "uncompress_x264" do
+#  cwd "#{node[:ffmpeg][:source_dir]}"
+#  user "root"
+#  command "tar xjvf last_x264.tar.bz2"
+#
+#  not_if { ::File.exists?("#{node[:ffmpeg][:source_dir]}/x264-snapshot*") }
+#end
 
-script "install x264" do
-  interpreter "bash"
-  cwd "#{node[:ffmpeg][:source_dir]}/x264"
-  user "root"
-  code <<-EOH
-    export PATH=#{node[:ffmpeg][:bin_dir]}:$PATH
-    ./configure --prefix="#{node[:ffmpeg][:source_dir]}" --bindir="#{node[:ffmpeg][:bin_dir]}" --enable-static
-    make
-    make install
-    make distclean
-  EOH
-  not_if { ::File.exists?("#{node[:ffmpeg][:bin_dir]}/x264") }
-end
+#script "install x264" do
+#  interpreter "bash"
+#  cwd "#{node[:ffmpeg][:source_dir]}/x264-snapshot*"
+#  user "root"
+#  code <<-EOH
+#    export PATH=#{node[:ffmpeg][:bin_dir]}:$PATH
+#    ./configure --prefix="#{node[:ffmpeg][:build_dir]}" --bindir="#{node[:ffmpeg][:bin_dir]}" --enable-static
+#    make
+#    make install
+#    make distclean
+#  EOH
+#  not_if { ::File.exists?("#{node[:ffmpeg][:bin_dir]}/x264") }
+#end
+
+package "x264"
+package "libx264-dev"
 
 git "#{node[:ffmpeg][:source_dir]}/fdk-aac"  do
   repository 'git://git.code.sf.net/p/opencore-amr/fdk-aac'
@@ -123,10 +146,21 @@ end
 package "libtheora-dev"
 package "libvorbis-dev"
 
-git "#{node[:ffmpeg][:source_dir]}/ffmpeg"  do
-  repository 'git://source.ffmpeg.org/ffmpeg'
-  action :sync
-  user 'root'
+#git "#{node[:ffmpeg][:source_dir]}/ffmpeg"  do
+#  repository 'git://source.ffmpeg.org/ffmpeg'
+#  action :sync
+#  user 'root'
+#end
+
+script "download ffmpeg" do
+  interpreter "bash"
+  cwd "#{node[:ffmpeg][:source_dir]}"
+  user "root"
+  code <<-EOH
+    wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2
+    tar xjvf ffmpeg-snapshot.tar.bz2
+  EOH
+  not_if { ::File.exists?("#{node[:ffmpeg][:source_dir]}/ffmpeg") }
 end
 
 script "build ffmpeg" do
@@ -138,9 +172,9 @@ script "build ffmpeg" do
     PKG_CONFIG_PATH="#{node[:ffmpeg][:build_dir]}/lib/pkgconfig"
     export PKG_CONFIG_PATH
     ./configure --prefix="#{node[:ffmpeg][:build_dir]}" \
-      --extra-cflags="-I#{node[:ffmpeg][:bin_dir]}" --extra-ldflags="-L#{node[:ffmpeg][:lib_dir]}" \
+      --extra-cflags="-I#{node[:ffmpeg][:include_dir]}" --extra-ldflags="-L#{node[:ffmpeg][:lib_dir]}" \
       --bindir="#{node[:ffmpeg][:bin_dir]}" --extra-libs="-ldl" --enable-gpl --enable-libass --enable-libfdk-aac \
-      --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libvpx \
+      --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx \
       --enable-libx264 --enable-nonfree --enable-x11grab
     make
     make install
@@ -154,12 +188,21 @@ end
 # Install FITS
 # 
 
+script "download fits" do
+  interpreter "bash"
+  cwd "/opt"
+  user "root"
+  code <<-EOH
+    wget https://fits.googlecode.com/files/fits-0.6.2.zip
+  EOH
+  not_if { ::File.exists?("/opt/fits-0.6.2.zip") }
+end
+
 script "install_fits" do
   interpreter "bash"
   cwd "/opt"
   user "root"
   code <<-EOH
-  wget https://fits.googlecode.com/files/fits-0.6.2.zip
   unzip fits-0.6.2.zip
   cd fits-0.6.2
   chmod +x fits.sh
